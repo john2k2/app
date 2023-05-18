@@ -9,11 +9,30 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.13.1",
+    "@supabase/auth-helpers-nextjs": "^0.6.1",
+    "@supabase/auth-helpers-react": "^0.3.1",
+    "@supabase/auth-ui-react": "^0.4.2",
+    "@supabase/auth-ui-shared": "^0.1.6",
+    "@supabase/supabase-js": "^2.22.0",
     "autoprefixer": "10.4.14",
-    "next": "13.4.1",
+    "axios": "^1.4.0",
+    "encoding": "^0.1.13",
+    "firebase": "^9.22.0",
+    "fs": "^0.0.1-security",
+    "google": "^2.1.0",
+    "jsdom": "^22.0.0",
+    "next": "^13.4.2",
+    "next-auth": "^4.22.1",
     "postcss": "8.4.23",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "tailwindcss": "3.3.2"
+    "react-hook-form": "^7.43.9",
+    "react-icons": "^4.8.0",
+    "tailwindcss": "3.3.2",
+    "url": "^0.11.0",
+    "zustand": "^4.3.8"
   }
 }
