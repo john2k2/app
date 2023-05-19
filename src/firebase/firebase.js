@@ -7,7 +7,13 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  doc,
+  setDoc,
+} from "firebase/firestore";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 export const firebaseConfig = {
@@ -75,6 +81,38 @@ export const uploadFile = async (file) => {
   const storageRef = ref(storage, `files/${file.name}`);
   await uploadBytes(storageRef, file);
   console.log("File uploaded");
+};
+
+export const uploadDataToFirestore = async (data) => {
+  try {
+    const docRef = await setDoc(
+      doc(db, "nombre_de_la_coleccion", "nombre_del_documento"),
+      { data }
+    );
+    if (docRef) {
+      console.log("Datos subidos correctamente a Firestore: ", docRef.id);
+    } else {
+      console.error(
+        "Error al subir los datos a Firestore: No se obtuvo un documento de referencia"
+      );
+    }
+  } catch (error) {
+    console.error("Error al subir los datos a Firestore:", error);
+    throw error;
+  }
+};
+
+export const updateAnimeLink = async (animeId, capituloId, leido) => {
+  const animeRef = doc(db, "nombre_de_la_coleccion", animeId);
+
+  try {
+    await updateDoc(animeRef, {
+      [`data.${animeId}.link.${capituloId}.leido`]: leido,
+    });
+    console.log("Link updated");
+  } catch (error) {
+    console.error("Error updating link:", error);
+  }
 };
 
 export default firebase_app;

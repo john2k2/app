@@ -24,7 +24,7 @@ const Navbar = () => {
   const actualizarCapitulos = () => {
     setCargando(true);
     setMensaje("");
-    fetch(`http://localhost:3001/actualizar/${usuario.uid}`)
+    fetch(`api/actualizar_capitulos/${usuario.uid}`)
       .then((response) => response.json())
       .then((data) => {
         setCargando(false);

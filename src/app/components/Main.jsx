@@ -1,44 +1,49 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/firebase/firebase";
 
 const Main = () => {
   const [animes, setAnimes] = useState([]);
 
-  const marcarComoLeido = (animeId, capituloId) => {
+  const marcarComoLeido = async (animeId, linkId) => {
     const updatedAnimes = animes.map((anime) => {
-      if (anime.id === animeId) {
-        const updatedCapitulos = anime.capitulos.map((capitulo) => {
-          if (capitulo.id === capituloId) {
-            return { ...capitulo, leido: true };
+      if (anime.link === animeId) {
+        const updatedCapitulos = anime.link.map((link) => {
+          if (link.id === linkId) {
+            return { ...link, leido: true };
           }
           return capitulo;
         });
-        return { ...anime, capitulos: updatedCapitulos };
+        return { ...anime, link: updatedCapitulos };
       }
       return anime;
     });
     setAnimes(updatedAnimes);
-    localStorage.setItem("animes", JSON.stringify(updatedAnimes));
+
+    const animeDocRef = doc(db, "nombre_de_la_coleccion", animeId);
+    await updateDoc(animeDocRef, {
+      link: updatedAnimes.find((anime) => anime.id === animeId).link,
+    });
   };
 
-  useEffect(() => {
-    // Verificar y cargar el estado de leído desde el localStorage
-    const animesFromLocalStorage = JSON.parse(localStorage.getItem("animes"));
-    if (animesFromLocalStorage) {
-      setAnimes(animesFromLocalStorage);
-    }
-  }, []);
+  console.log(animes.map((anime) => anime.link));
 
   useEffect(() => {
-    // Realizar la solicitud HTTP al servidor para obtener los datos
-    fetch("http://localhost:3001/")
-      .then((response) => response.json())
-      .then((data) => setAnimes(data))
+    const loadAnimesFromFirestore = async () => {
+      try {
+        const querySnapshot = await getDocs(
+          collection(db, "nombre_de_la_coleccion")
+        );
+        const animeData = querySnapshot.docs[0].data().data;
+        setAnimes(animeData);
+      } catch (error) {
+        console.error("Error al obtener los datos de Firestore:", error);
+      }
+    };
 
-      .catch((error) =>
-        console.error("Error al obtener los datos del servidor:", error)
-      );
+    loadAnimesFromFirestore();
   }, []);
 
   return (
@@ -56,7 +61,7 @@ const Main = () => {
           <div className="w-52 mb-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-500 scrollbar-track-gray-200 scrollbar-thumb-rounded-full scrollbar-track-rounded-full scrollbar-thumb-hover:shadow-lg scrollbar-track-hover:shadow-lg transition duration-300 ease-in-out">
             <ul>
               {anime.link.map((capitulo) => (
-                <li key={capitulo.capitulo}>
+                <li key={capitulo.id}>
                   <a
                     href={capitulo.url}
                     target="_blank"
@@ -64,7 +69,7 @@ const Main = () => {
                     className={`text-sm text left font-medium transition duration-500 ease-in-out transform hover:-translate-y-1 hover:scale-110 ${
                       capitulo.leido ? "text-red-500" : "text-green-500"
                     }`}
-                    onClick={() => marcarComoLeido(anime.id, capitulo.id)}
+                    onClick={() => marcarComoLeido(anime.link)}
                   >
                     {capitulo.capitulo}
                   </a>
