@@ -1,11 +1,8 @@
-const os = require("os");
-const fs = require("fs");
-const axios = require("axios");
-const { URL } = require("url");
-const cheerio = require("cheerio");
-const exp = require("constants");
-
-const uid = process.argv[2] + ".json";
+import { URL } from "url";
+import cheerio from "cheerio";
+import axios from "axios";
+import { promises as fs } from "fs";
+import { NextResponse } from "next/server";
 
 function limpiarTexto(texto) {
   // Limpia el texto eliminando los símbolos no deseados
@@ -58,20 +55,20 @@ async function obtenerAnimes(urls) {
             baseUrl
           ).href;
 
-          if (animes[nombre]) {
-            // Actualizar los capítulos existentes
-            const anime = animes[nombre];
-            for (const chapter of chapters) {
-              if (!anime.link.some((c) => c.capitulo === chapter.capitulo)) {
-                anime.link.unshift(chapter);
-              }
-            }
-          } else {
-            animes[nombre] = {
+          const animeKey = `${nombre}-${imagenUrl}`;
+          if (!animes[animeKey]) {
+            animes[animeKey] = {
               nombre: nombre,
               imagenUrl: imagenUrl,
-              link: chapters,
+              link: [],
             };
+          }
+
+          const anime = animes[animeKey];
+          for (const chapter of chapters) {
+            if (!anime.link.some((link) => link.url === chapter.url)) {
+              anime.link.push(chapter);
+            }
           }
 
           capitulos.push({
@@ -88,33 +85,39 @@ async function obtenerAnimes(urls) {
     }
   }
 
-  return [animes, capitulos];
+  return [Object.values(animes), capitulos];
 }
 
-function cargarResultados() {
-  if (!fs.existsSync(uid) || fs.statSync(uid).size === 0) {
-    return [[], 0];
-  } else {
-    const capitulos = require(`./${uid}`);
-    const ultimoId = capitulos.reduce((maxId, c) => Math.max(maxId, c.id), 0);
-    return [capitulos, ultimoId];
+async function cargarResultados(uid) {
+  try {
+    const data = await fs.readFile(`${uid}.json`, "utf8");
+    if (data && data.length > 0) {
+      const capitulos = JSON.parse(data);
+      const ultimoId = capitulos.reduce((maxId, c) => Math.max(maxId, c.id), 0);
+      return [capitulos, ultimoId];
+    }
+  } catch (error) {
+    console.log(`Error al cargar los resultados desde ${uid}.json`);
+  }
+  return [[], 0];
+}
+
+async function actualizarResultados(capitulos, uid) {
+  try {
+    await fs.writeFile(
+      `${uid}.json`,
+      JSON.stringify(capitulos, null, 4),
+      "utf8"
+    );
+    console.log(`Resultados guardados en ${uid}.json`);
+  } catch (error) {
+    console.log(`Error al guardar los resultados en ${uid}.json`);
   }
 }
 
-function actualizarResultados(capitulos) {
-  fs.writeFileSync(uid, JSON.stringify(capitulos, null, 4));
-  console.log("Resultados guardados en resultados.json");
-}
-
-async function main() {
-  const urls = [
-    "https://www.leercapitulo.com/manga/c4kt5e/tengoku-daimakyo/",
-    "https://www.leercapitulo.com/manga/5d4b5e/one-piece/",
-    "https://www.leercapitulo.com/manga/5q8ord/boku-no-kokoro-no-yabai-yatsu/",
-  ];
-
+async function main(uid, urls) {
   const [animes, capitulos] = await obtenerAnimes(urls);
-  const [resultadosCapitulos, ultimoId] = cargarResultados();
+  const [resultadosCapitulos, ultimoId] = await cargarResultados(uid);
 
   // Actualizar los capítulos existentes con los nuevos enlaces
   for (const anime of resultadosCapitulos) {
@@ -132,7 +135,20 @@ async function main() {
   const nuevosCapitulos = capitulos.filter((c) => c.id > ultimoId);
   resultadosCapitulos.push(...nuevosCapitulos);
 
-  actualizarResultados(resultadosCapitulos);
+  await actualizarResultados(resultadosCapitulos, uid);
 }
 
-main();
+export async function GET(request, { params }) {
+  const uid = params.uid;
+  const urls = [
+    "https://www.leercapitulo.com/manga/d2qhr5/oshi-no-ko/",
+    "https://www.leercapitulo.com/manga/fce1ej/mercenario-adolescente/",
+    "https://www.leercapitulo.com/manga/fce1ej/mercenario-adolescente/",
+  ];
+
+  const uniqueUrls = urls.filter((url, index) => urls.indexOf(url) === index);
+
+  await main(uid, uniqueUrls);
+
+  return new Response("Resultados actualizados");
+}

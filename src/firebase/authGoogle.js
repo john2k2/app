@@ -42,7 +42,7 @@ const AuthGoogle = () => {
   return (
     <div
       className="
-      flex justify-between items-center"
+      flex "
     >
       {user ? (
         <>

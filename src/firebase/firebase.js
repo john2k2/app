@@ -85,10 +85,7 @@ export const uploadFile = async (file) => {
 
 export const uploadDataToFirestore = async (data) => {
   try {
-    const docRef = await setDoc(
-      doc(db, "nombre_de_la_coleccion", "nombre_del_documento"),
-      { data }
-    );
+    const docRef = await setDoc(doc(db, usuario.uid, usuario.uid), { data });
     if (docRef) {
       console.log("Datos subidos correctamente a Firestore: ", docRef.id);
     } else {

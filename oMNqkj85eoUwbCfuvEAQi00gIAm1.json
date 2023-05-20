@@ -1,0 +1,56 @@
+[
+    {
+        "id": 2,
+        "imagenUrl": "https://www.leercapitulo.com/covers/o/oshi-no-ko-d2qhr5.png",
+        "nombre": "Oshi No Ko",
+        "link": [
+            {
+                "capitulo": "Capitulo 118 Arranque",
+                "url": "https://www.leercapitulo.com/leer/d2qhr5/oshi-no-ko/118/",
+                "leido": false
+            },
+            {
+                "capitulo": "Capitulo 117 Panda",
+                "url": "https://www.leercapitulo.com/leer/d2qhr5/oshi-no-ko/117/",
+                "leido": false
+            },
+            {
+                "capitulo": "Capitulo 116 Responsabilidad",
+                "url": "https://www.leercapitulo.com/leer/d2qhr5/oshi-no-ko/116/",
+                "leido": false
+            },
+            {
+                "capitulo": "Capitulo 115 Papel",
+                "url": "https://www.leercapitulo.com/leer/d2qhr5/oshi-no-ko/115/",
+                "leido": false
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "imagenUrl": "https://www.leercapitulo.com/covers/m/mercenario-adolescente-fce1ej.png",
+        "nombre": "Mercenario Adolescente",
+        "link": [
+            {
+                "capitulo": "Capitulo 137",
+                "url": "https://www.leercapitulo.com/leer/fce1ej/mercenario-adolescente/137/",
+                "leido": false
+            },
+            {
+                "capitulo": "Capitulo 136",
+                "url": "https://www.leercapitulo.com/leer/fce1ej/mercenario-adolescente/136/",
+                "leido": false
+            },
+            {
+                "capitulo": "Capitulo 135",
+                "url": "https://www.leercapitulo.com/leer/fce1ej/mercenario-adolescente/135/",
+                "leido": false
+            },
+            {
+                "capitulo": "Capitulo 134",
+                "url": "https://www.leercapitulo.com/leer/fce1ej/mercenario-adolescente/134/",
+                "leido": false
+            }
+        ]
+    }
+]

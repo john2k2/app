@@ -1,8 +1,12 @@
-const path = require("path");
+// next.config.js
 
 module.exports = {
-  webpack: (config) => {
-    config.resolve.alias["@"] = path.resolve(__dirname);
-    return config;
+  async rewrites() {
+    return [
+      {
+        source: "/@/:username", // Ruta a redirigir, donde ":username" es un parámetro dinámico
+        destination: "/users/:username", // Ruta destino de la redirección
+      },
+    ];
   },
 };
