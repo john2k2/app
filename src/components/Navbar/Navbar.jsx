@@ -13,22 +13,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav
-        className="flex 
-      justify-between
-      items-center
-      py-4
-      px-10
-      bg-gray-800
-      text-gray-100
-      shadow-sm
-      font-mono
-      sticky
-      top-0
-      z-50
-      
-      "
-      >
+      <nav className="flex justify-between items-center py-4 px-10 bg-gray-800 text-gray-100 shadow-sm font-mono sticky top-0 z-50">
         <h1 className="text-3xl font-bold text-white cursor-pointer">
           Anime App
         </h1>

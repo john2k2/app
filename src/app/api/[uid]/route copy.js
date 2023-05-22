@@ -2,8 +2,10 @@ import { URL } from "url";
 import cheerio from "cheerio";
 import axios from "axios";
 import { promises as fs } from "fs";
+import { NextResponse } from "next/server";
 
 function limpiarTexto(texto) {
+  // Limpia el texto eliminando los símbolos no deseados
   const textoLimpio = texto.replace(/[^\w\s]/g, "");
   return textoLimpio.trim();
 }
@@ -89,11 +91,7 @@ async function obtenerAnimes(urls) {
 async function cargarResultados(listaNombre) {
   try {
     const data = await fs.readFile(`${listaNombre}.json`, "utf8");
-    if (data && data.length > 0) {
-      const capitulos = JSON.parse(data);
-      const ultimoId = capitulos.reduce((maxId, c) => Math.max(maxId, c.id), 0);
-      return [capitulos, ultimoId];
-    }
+    // Resto del código...
   } catch (error) {
     console.log(`Error al cargar los resultados desde ${listaNombre}.json`);
   }
@@ -113,9 +111,22 @@ async function actualizarResultados(capitulos, listaNombre) {
   }
 }
 
-async function main(uid, urls, listaNombre) {
+async function actualizarResultados(capitulos, uid) {
+  try {
+    await fs.writeFile(
+      `${uid}.json`,
+      JSON.stringify(capitulos, null, 4),
+      "utf8"
+    );
+    console.log(`Resultados guardados en ${uid}.json`);
+  } catch (error) {
+    console.log(`Error al guardar los resultados en ${uid}.json`);
+  }
+}
+
+async function main(uid, urls) {
   const [animes, capitulos] = await obtenerAnimes(urls);
-  const [resultadosCapitulos, ultimoId] = await cargarResultados(listaNombre);
+  const [resultadosCapitulos, ultimoId] = await cargarResultados(uid);
 
   // Actualizar los capítulos existentes con los nuevos enlaces
   for (const anime of resultadosCapitulos) {
@@ -133,19 +144,17 @@ async function main(uid, urls, listaNombre) {
   const nuevosCapitulos = capitulos.filter((c) => c.id > ultimoId);
   resultadosCapitulos.push(...nuevosCapitulos);
 
-  await actualizarResultados(resultadosCapitulos, listaNombre);
+  await actualizarResultados(resultadosCapitulos, uid);
 }
 
-export async function POST(request, { params }) {
-  const { uid } = params.uid;
-  const { urls } = (await request.json()) || [];
-  const listaNombre = params.listaNombre || "lista";
+export async function GET(request, { params }) {
+  const uid = params.uid;
+  const urls = params.urls || []; // Obtener las urls de los parámetros
+  const listaNombre = params.listaNombre || "lista"; // Obtener el nombre de la lista de los parámetros
+
   const uniqueUrls = urls.filter((url, index) => urls.indexOf(url) === index);
 
-  await main(uid, uniqueUrls, listaNombre);
+  await main(uid, uniqueUrls, listaNombre); // Pasar el nombre de la lista a la función main
 
-  return {
-    status: 200,
-    body: { uid, urls: uniqueUrls, listaNombre },
-  };
+  return new Response("Resultados actualizados");
 }

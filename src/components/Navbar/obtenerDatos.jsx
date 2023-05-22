@@ -1,13 +1,13 @@
-"use client";
+// ObtenerDatos.js
 
 import { useEffect, useState } from "react";
 import { collection, getDocs, where, query } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
 import { useAuth } from "@/firebase/useAuth";
 
-const ObtenerDatos = () => {
-  const [listas, setListas] = useState([]);
-  const usuario = useAuth();
+export const useObtenerDatos = (usuario) => {
+  const [urls, setUrls] = useState([]);
+  const [listaNombre, setListaNombre] = useState("");
 
   useEffect(() => {
     const obtenerDatos = async () => {
@@ -20,14 +20,17 @@ const ObtenerDatos = () => {
 
           const querySnapshot = await getDocs(q);
 
-          const listasData = [];
+          const datos = [];
           querySnapshot.forEach((doc) => {
-            listasData.push({ id: doc.id, ...doc.data() });
+            datos.push({ id: doc.id, ...doc.data() });
           });
-          if (listasData.length === 0) {
+          if (datos.length === 0) {
             console.log("No hay datos");
           } else {
-            setListas(listasData);
+            const userUrls = datos[0].urls;
+            const userListaNombre = datos[0].nombreLista;
+            setUrls(userUrls);
+            setListaNombre(userListaNombre);
           }
         }
       } catch (error) {
@@ -38,22 +41,5 @@ const ObtenerDatos = () => {
     obtenerDatos();
   }, [usuario]);
 
-  if (!usuario) {
-    return null; // Si el usuario no está logueado, no se muestra nada
-  }
-
-  return (
-    <>
-      {listas.map((lista) => (
-        <div key={lista.id}>
-          <h1>Nombre de la lista: {lista.nombreLista}</h1>
-          {lista.urls.map((url) => (
-            <p key={url}>{url}</p>
-          ))}
-        </div>
-      ))}
-    </>
-  );
+  return { urls, listaNombre };
 };
-
-export default ObtenerDatos;
