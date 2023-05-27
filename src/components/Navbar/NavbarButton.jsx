@@ -1,11 +1,27 @@
 import { useState, useEffect } from "react";
 import { useObtenerDatos } from "./ObtenerDatos";
+import { set } from "react-hook-form";
 
 export const useActualizarCapitulos = (usuario) => {
-  const { urls } = useObtenerDatos(usuario);
+  const { listas } = useObtenerDatos(usuario);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [nuevoCapitulo, setNuevoCapitulo] = useState(false);
+  const [nombresListas, setNombresListas] = useState([]);
+  const [urlsListas, setUrlsListas] = useState([]);
+
+  useEffect(() => {
+    const nombresTemp = [];
+    const urlsTemp = [];
+
+    listas.forEach((lista) => {
+      nombresTemp.push(lista.nombreLista);
+      urlsTemp.push(lista.urls);
+    });
+
+    setNombresListas(nombresTemp);
+    setUrlsListas(urlsTemp);
+  }, [listas]);
 
   const actualizarCapitulos = () => {
     setCargando(true);
@@ -15,7 +31,7 @@ export const useActualizarCapitulos = (usuario) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ urls }),
+      body: JSON.stringify({ usuario, nombresListas, urlsListas }),
     })
       .then((response) => {
         if (!response.ok) {
@@ -37,10 +53,10 @@ export const useActualizarCapitulos = (usuario) => {
   };
 
   useEffect(() => {
-    if (usuario && usuario.uid && urls) {
+    if (usuario && usuario.uid) {
       actualizarCapitulos();
     }
-  }, [usuario, urls]);
+  }, [usuario]);
 
   return { cargando, mensaje, nuevoCapitulo, actualizarCapitulos };
 };

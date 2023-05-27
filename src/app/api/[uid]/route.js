@@ -1,7 +1,7 @@
 import { URL } from "url";
 import cheerio from "cheerio";
 import axios from "axios";
-import { promises as fs } from "fs";
+import { doc, setDoc, arrayUnion, collection, db } from "firebase/firestore";
 
 function limpiarTexto(texto) {
   const textoLimpio = texto.replace(/[^\w\s]/g, "");
@@ -86,66 +86,77 @@ async function obtenerAnimes(urls) {
   return [Object.values(animes), capitulos];
 }
 
-async function cargarResultados(listaNombre) {
+async function actualizarResultadosFirebase(mangas, listaNombre, uid) {
   try {
-    const data = await fs.readFile(`${listaNombre}.json`, "utf8");
-    if (data && data.length > 0) {
-      const capitulos = JSON.parse(data);
-      const ultimoId = capitulos.reduce((maxId, c) => Math.max(maxId, c.id), 0);
-      return [capitulos, ultimoId];
-    }
-  } catch (error) {
-    console.log(`Error al cargar los resultados desde ${listaNombre}.json`);
-  }
-  return [[], 0];
-}
+    const listaCollectionRef = collection(db, "mangas");
+    const listaDocRef = doc(listaCollectionRef, uid, listaNombre);
 
-async function actualizarResultados(capitulos, listaNombre) {
-  try {
-    await fs.writeFile(
-      `${listaNombre}.json`,
-      JSON.stringify(capitulos, null, 4),
-      "utf8"
+    for (const manga of mangas) {
+      if (manga.imagenUrl !== undefined) {
+        await setDoc(listaDocRef, manga, { merge: true });
+      } else {
+        console.log(`Error: imagenUrl de ${manga.nombre} es undefined`);
+      }
+    }
+    console.log(
+      `Resultados guardados en Firebase para el usuario ${uid} en la lista ${listaNombre}`
     );
-    console.log(`Resultados guardados en ${listaNombre}.json`);
   } catch (error) {
-    console.log(`Error al guardar los resultados en ${listaNombre}.json`);
+    console.log(
+      `Error al guardar los resultados en Firebase para el usuario ${uid} en la lista ${listaNombre}`
+    );
+    console.log(`Error: ${error.message}`);
   }
 }
 
-async function main(uid, urls, listaNombre) {
-  const [animes, capitulos] = await obtenerAnimes(urls);
-  const [resultadosCapitulos, ultimoId] = await cargarResultados(listaNombre);
+async function main(uid, urlsListas, nombresListas) {
+  for (let i = 0; i < urlsListas.length; i++) {
+    const urls = urlsListas[i];
+    const listaNombre = nombresListas[i];
 
-  // Actualizar los capítulos existentes con los nuevos enlaces
-  for (const anime of resultadosCapitulos) {
-    const nombre = anime.nombre;
-    if (nombre in animes) {
-      anime.link.push(
-        ...animes[nombre].link.filter(
-          (c) => !anime.link.some((ac) => ac.capitulo === c.capitulo)
-        )
-      );
+    const [animes, capitulos] = await obtenerAnimes(urls);
+    const resultadosCapitulos = [];
+
+    for (const anime of animes) {
+      const nombre = anime.nombre;
+      const imagenUrl = anime.imagenUrl;
+      const link = [];
+
+      for (const chapter of capitulos) {
+        if (!anime.link.some((link) => link.url === chapter.url)) {
+          link.push(chapter);
+        }
+      }
+
+      const manga = {
+        imagenUrl: imagenUrl,
+        nombre: nombre,
+        link: link,
+      };
+
+      resultadosCapitulos.push(manga);
     }
+
+    await actualizarResultadosFirebase(resultadosCapitulos, listaNombre, uid);
   }
-
-  // Agregar los nuevos capítulos a los resultados existentes
-  const nuevosCapitulos = capitulos.filter((c) => c.id > ultimoId);
-  resultadosCapitulos.push(...nuevosCapitulos);
-
-  await actualizarResultados(resultadosCapitulos, listaNombre);
 }
 
 export async function POST(request, { params }) {
-  const { uid } = params.uid;
-  const { urls } = (await request.json()) || [];
-  const listaNombre = params.listaNombre || "lista";
-  const uniqueUrls = urls.filter((url, index) => urls.indexOf(url) === index);
+  const uid = params.uid;
+  const { urlsListas, nombresListas } = (await request.json()) || [];
+  const uniqueUrlsListas = urlsListas.map((urls) =>
+    urls.filter((url, index) => urls.indexOf(url) === index)
+  );
 
-  await main(uid, uniqueUrls, listaNombre);
+  console.log("params:", params);
+  console.log("uid:", uid);
+  console.log("urls:", urlsListas);
+  console.log("nombres:", nombresListas);
+
+  await main(uid, uniqueUrlsListas, nombresListas);
 
   return {
     status: 200,
-    body: { uid, urls: uniqueUrls, listaNombre },
+    body: { uid, urls: uniqueUrlsListas, listaNombre: nombresListas },
   };
 }
