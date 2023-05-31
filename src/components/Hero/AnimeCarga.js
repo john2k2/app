@@ -1,25 +1,38 @@
 import { useState, useEffect } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebase/firebase";
+import { useAuth } from "@/firebase/useAuth";
 
-const AnimeCarga = (usuario) => {
-  const [items, setItems] = useState([]);
+const AnimeCarga = (props) => {
+  const { listaSeleccionada } = props; // Accede a listaSeleccionada desde props
+  const usuario = useAuth();
+  const [mangas, setMangas] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadItemsFromFirestore = async () => {
+    const loadMangasFromFirestore = async () => {
       try {
-        if (usuario && usuario.uid) {
-          const docRef = doc(db, usuario.uid, usuario.uid);
+        if (usuario && usuario.uid && listaSeleccionada) {
+          const docRef = doc(
+            db,
+            "listas",
+            usuario.uid,
+            "listas",
+            listaSeleccionada
+          );
           const docSnapshot = await getDoc(docRef);
           if (docSnapshot.exists()) {
-            const itemsData = docSnapshot.data().items;
-            setItems(itemsData);
+            const data = docSnapshot.data();
+            const mangasData = Object.keys(data).map((mangaKey) => {
+              return { id: mangaKey, ...data[mangaKey] };
+            });
+            console.log(mangasData);
+            setMangas(mangasData);
           } else {
-            setItems([]);
+            setMangas([]);
           }
         } else {
-          setItems([]);
+          setMangas([]);
         }
         setLoading(false);
       } catch (error) {
@@ -28,10 +41,10 @@ const AnimeCarga = (usuario) => {
     };
 
     setLoading(true);
-    loadItemsFromFirestore();
-  }, [usuario]);
+    loadMangasFromFirestore();
+  }, [usuario, listaSeleccionada]);
 
-  return [items, loading];
+  return [mangas, loading];
 };
 
 export default AnimeCarga;

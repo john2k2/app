@@ -4,7 +4,8 @@ import React from "react";
 import { VscLoading } from "react-icons/vsc";
 import { useAuth } from "@/firebase/useAuth";
 import { useActualizarCapitulos } from "@/components/Navbar/NavbarButton";
-import AuthGoogle from "@/firebase/authGoogle";
+import AuthGoogle from "@/firebase/AuthGoogle";
+import Link from "next/link";
 
 const Navbar = () => {
   const usuario = useAuth();
@@ -17,7 +18,16 @@ const Navbar = () => {
         <h1 className="text-3xl font-bold text-white cursor-pointer">
           Anime App
         </h1>
-
+        <li>
+          <Link href="/" className="p-3">
+            Inicio
+          </Link>
+        </li>
+        <li>
+          <Link href="/formulario" className="p-3">
+            Listas
+          </Link>
+        </li>
         <div className="actualizar">
           {usuario && (
             <button

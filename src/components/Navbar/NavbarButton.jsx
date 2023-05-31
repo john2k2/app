@@ -10,6 +10,8 @@ export const useActualizarCapitulos = (usuario) => {
   const [nombresListas, setNombresListas] = useState([]);
   const [urlsListas, setUrlsListas] = useState([]);
 
+  console.log("listas", listas);
+
   useEffect(() => {
     const nombresTemp = [];
     const urlsTemp = [];

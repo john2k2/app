@@ -13,6 +13,8 @@ import {
   addDoc,
   doc,
   setDoc,
+  updateDoc,
+  getDoc,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 
@@ -110,6 +112,28 @@ export const updateAnimeLink = async (animeId, capituloId, leido) => {
   } catch (error) {
     console.error("Error updating link:", error);
   }
+};
+
+export {
+  initializeApp,
+  getApps,
+  getApp,
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  getFirestore,
+  collection,
+  addDoc,
+  setDoc,
+  getStorage,
+  ref,
+  uploadBytes,
+  doc,
+  updateDoc,
+  getDoc,
 };
 
 export default firebase_app;

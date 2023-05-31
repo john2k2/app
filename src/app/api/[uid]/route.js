@@ -1,7 +1,14 @@
 import { URL } from "url";
 import cheerio from "cheerio";
 import axios from "axios";
-import { doc, setDoc, arrayUnion, collection, db } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  db,
+} from "@/firebase/firebase";
 
 function limpiarTexto(texto) {
   const textoLimpio = texto.replace(/[^\w\s]/g, "");
@@ -34,7 +41,6 @@ async function obtenerCapitulos(url) {
 
 async function obtenerAnimes(urls) {
   const animes = {};
-  const capitulos = [];
 
   for (const url of urls) {
     try {
@@ -53,28 +59,14 @@ async function obtenerAnimes(urls) {
             baseUrl
           ).href;
 
-          const animeKey = `${nombre}-${imagenUrl}`;
-          if (!animes[animeKey]) {
-            animes[animeKey] = {
-              nombre: nombre,
-              imagenUrl: imagenUrl,
-              link: [],
-            };
-          }
-
-          const anime = animes[animeKey];
-          for (const chapter of chapters) {
-            if (!anime.link.some((link) => link.url === chapter.url)) {
-              anime.link.push(chapter);
-            }
-          }
-
-          capitulos.push({
-            id: capitulos.length + 2,
-            imagenUrl: imagenUrl,
+          const anime = {
             nombre: nombre,
-            link: chapters,
-          });
+            imagenUrl: imagenUrl,
+            link: chapters, // Aquí se debe asignar la variable chapters
+          };
+
+          // Usar el nombre del anime como clave en el objeto animes
+          animes[nombre] = anime;
         }
       }
     } catch (e) {
@@ -83,19 +75,23 @@ async function obtenerAnimes(urls) {
     }
   }
 
-  return [Object.values(animes), capitulos];
+  return Object.values(animes);
 }
 
 async function actualizarResultadosFirebase(mangas, listaNombre, uid) {
   try {
-    const listaCollectionRef = collection(db, "mangas");
-    const listaDocRef = doc(listaCollectionRef, uid, listaNombre);
-
+    const mangaCollectionRef = collection(db, "mangas");
     for (const manga of mangas) {
-      if (manga.imagenUrl !== undefined) {
-        await setDoc(listaDocRef, manga, { merge: true });
+      const docId = `${uid}-${manga.nombre}`;
+      const docRef = doc(mangaCollectionRef, docId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        // El documento ya existe, actualizarlo
+        await updateDoc(docRef, { ...manga, listaNombre });
       } else {
-        console.log(`Error: imagenUrl de ${manga.nombre} es undefined`);
+        // El documento no existe, crearlo
+        await setDoc(docRef, { ...manga, listaNombre: listaNombre });
       }
     }
     console.log(
@@ -114,30 +110,9 @@ async function main(uid, urlsListas, nombresListas) {
     const urls = urlsListas[i];
     const listaNombre = nombresListas[i];
 
-    const [animes, capitulos] = await obtenerAnimes(urls);
-    const resultadosCapitulos = [];
+    const animes = await obtenerAnimes(urls);
 
-    for (const anime of animes) {
-      const nombre = anime.nombre;
-      const imagenUrl = anime.imagenUrl;
-      const link = [];
-
-      for (const chapter of capitulos) {
-        if (!anime.link.some((link) => link.url === chapter.url)) {
-          link.push(chapter);
-        }
-      }
-
-      const manga = {
-        imagenUrl: imagenUrl,
-        nombre: nombre,
-        link: link,
-      };
-
-      resultadosCapitulos.push(manga);
-    }
-
-    await actualizarResultadosFirebase(resultadosCapitulos, listaNombre, uid);
+    await actualizarResultadosFirebase(animes, listaNombre, uid);
   }
 }
 
