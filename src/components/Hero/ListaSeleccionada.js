@@ -26,7 +26,7 @@ const ListaSeleccionada = ({ setListaSeleccionada }) => {
           });
           setListas(listasUsuario);
           if (listasUsuario.length > 0) {
-            setListaSeleccionada(listasUsuario[0].id);
+            setListaSeleccionada(listasUsuario[0].nombreLista);
           }
         }
       } catch (error) {
@@ -44,7 +44,7 @@ const ListaSeleccionada = ({ setListaSeleccionada }) => {
   return (
     <select onChange={cambiarListaSeleccionada}>
       {listas.map((lista) => (
-        <option value={lista.id} key={lista.id}>
+        <option value={lista.nombreLista} key={lista.id}>
           {lista.nombreLista}
         </option>
       ))}

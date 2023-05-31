@@ -1,34 +1,44 @@
 "use client";
-import React, { useState } from "react";
-import ListaSeleccionada from "./ListaSeleccionada";
+
+import React, { useState, useEffect } from "react";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import MangaList from "./MangaList";
-import AnimeItem from "./AnimeItem";
-import { useAuth } from "@/firebase/useAuth";
+import ListaSeleccionada from "./ListaSeleccionada";
 
 const Main = () => {
-  const [listaSeleccionada, setListaSeleccionada] = useState(null);
-  const usuario = useAuth();
+  const [mangas, setMangas] = useState([]);
+  const [listaSeleccionada, setListaSeleccionada] = useState("");
+
+  useEffect(() => {
+    const cargarMangas = async () => {
+      try {
+        const db = getFirestore();
+        const q = query(
+          collection(db, "mangas"),
+          where("listaNombre", "==", listaSeleccionada)
+        );
+        const querySnapshot = await getDocs(q);
+        const mangasUsuario = [];
+        querySnapshot.forEach((doc) => {
+          mangasUsuario.push(doc.data());
+        });
+        setMangas(mangasUsuario);
+      } catch (error) {
+        console.error("Error al obtener los datos de Firestore:", error);
+      }
+    };
+
+    if (listaSeleccionada) {
+      cargarMangas();
+    }
+  }, [listaSeleccionada]);
 
   return (
-    <>
-      {!usuario && <p>Debes iniciar sesión para ver tus datos</p>}
-
-      {usuario && (
-        <>
-          <h1>Selecciona una lista:</h1>
-          <ListaSeleccionada setListaSeleccionada={setListaSeleccionada} />
-
-          {listaSeleccionada ? (
-            <>
-              <h2>Mangas de la lista seleccionada:</h2>
-              <MangaList listaSeleccionada={listaSeleccionada} />
-            </>
-          ) : (
-            <p>Selecciona una lista para ver los mangas</p>
-          )}
-        </>
-      )}
-    </>
+    <div>
+      <ListaSeleccionada setListaSeleccionada={setListaSeleccionada} />
+      {listaSeleccionada && <MangaList listaSeleccionada={listaSeleccionada} />}
+    </div>
   );
 };
 
