@@ -15,6 +15,7 @@ import {
   setDoc,
   updateDoc,
   getDocs,
+  getDoc,
   where,
   query,
   deleteDoc,
@@ -140,6 +141,7 @@ export {
   where,
   query,
   deleteDoc,
+  getDoc,
 };
 
 export default firebase_app;
