@@ -25,7 +25,7 @@ const AnimeItem = ({ manga }) => (
             >
               <span
                 className={`${
-                  link.leido ? "bg-green-500" : "bg-red-500"
+                  link.leido ? "bg-red-500" : "bg-green-500"
                 } w-2 h-2 rounded-full mr-2`}
               ></span>
               {link.capitulo}
