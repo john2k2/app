@@ -11,14 +11,12 @@ import {
 } from "@/firebase/firebase";
 
 function limpiarTexto(texto) {
-  console.log(`Limpiando texto: ${texto}`);
   const textoLimpio = texto.replace(/[^\w\s]/g, "");
   return textoLimpio.trim();
 }
 
 async function obtenerCapitulos(url) {
   try {
-    console.log(`Obteniendo capítulos desde la URL: ${url}`);
     const response = await axios.get(url);
     if (response.status === 200) {
       const $ = cheerio.load(response.data);
@@ -98,9 +96,6 @@ async function obtenerAnimes(urls, uid) {
 
 async function actualizarResultadosFirebase(mangas, listaNombre, uid) {
   try {
-    console.log(
-      `Actualizando resultados en Firebase para el usuario ${uid} en la lista ${listaNombre}`
-    );
     const mangaCollectionRef = collection(db, "mangas");
     for (const manga of mangas) {
       const docId = `${uid}-${manga.nombre}`;
@@ -130,38 +125,25 @@ async function actualizarResultadosFirebase(mangas, listaNombre, uid) {
 }
 
 async function main(uid, urlsListas, nombresListas) {
-  console.log(`Iniciando función principal para el usuario ${uid}`);
   for (let i = 0; i < urlsListas.length; i++) {
     const urls = urlsListas[i];
     const listaNombre = nombresListas[i];
 
-    console.log(`Obteniendo animes para la lista ${listaNombre}`);
     const animes = await obtenerAnimes(urls);
 
-    console.log(
-      `Actualizando resultados en Firebase para la lista ${listaNombre}`
-    );
     await actualizarResultadosFirebase(animes, listaNombre, uid);
   }
 }
 
 export async function POST(request, { params }) {
-  console.log(`Recibiendo solicitud POST`);
   const uid = params.uid;
   const { urlsListas, nombresListas } = (await request.json()) || [];
   const uniqueUrlsListas = urlsListas.map((urls) =>
     urls.filter((url, index) => urls.indexOf(url) === index)
   );
 
-  console.log("params:", params);
-  console.log("uid:", uid);
-  console.log("urls:", urlsListas);
-  console.log("nombres:", nombresListas);
-
-  console.log(`Iniciando función principal para el usuario ${uid}`);
   await main(uid, uniqueUrlsListas, nombresListas);
 
-  console.log(`Finalizando función principal para el usuario ${uid}`);
   return {
     status: 200,
     body: { uid, urls: uniqueUrlsListas, listaNombre: nombresListas },
