@@ -6,8 +6,8 @@ import {
   query,
   where,
   getDocs,
-} from "firebase/firestore";
-import { db } from "@/firebase/firebase";
+  db,
+} from "@/firebase/firebase";
 import AnimeItem from "./AnimeItem";
 import { useAuth } from "@/firebase/useAuth";
 
@@ -16,9 +16,11 @@ const MangaList = ({ listaSeleccionada }) => {
   const [loading, setLoading] = useState(true);
   const usuario = useAuth();
 
-  const deleteMangaIfListDoesNotExist = async (mangaDocId, listaNombre) => {
-    const usuario = useAuth();
-
+  const deleteMangaIfListDoesNotExist = async (
+    usuario,
+    mangaDocId,
+    listaNombre
+  ) => {
     try {
       const listaQuery = query(
         collection(db, "listas"),
@@ -58,7 +60,11 @@ const MangaList = ({ listaSeleccionada }) => {
 
           // Para cada manga, verifica si la lista todavía existe
           for (let manga of mangasData) {
-            await deleteMangaIfListDoesNotExist(manga.id, manga.listaNombre);
+            await deleteMangaIfListDoesNotExist(
+              usuario,
+              manga.id,
+              manga.listaNombre
+            );
           }
         }
       } catch (error) {

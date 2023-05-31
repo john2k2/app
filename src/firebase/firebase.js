@@ -14,7 +14,10 @@ import {
   doc,
   setDoc,
   updateDoc,
-  getDoc,
+  getDocs,
+  where,
+  query,
+  deleteDoc,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes } from "firebase/storage";
 
@@ -133,7 +136,10 @@ export {
   uploadBytes,
   doc,
   updateDoc,
-  getDoc,
+  getDocs,
+  where,
+  query,
+  deleteDoc,
 };
 
 export default firebase_app;

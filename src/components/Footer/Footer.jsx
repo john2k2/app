@@ -4,8 +4,7 @@ const footer = () => {
   return (
     <div
       className="
-        flex bg-slate-500 h-[10vh]
-    "
+        flex bg-slate-500 h-[10vh]"
     >
       <div className="flex flex-col justify-center items-center w-full">
         <p className="text-white text-xl font-bold capitalize">

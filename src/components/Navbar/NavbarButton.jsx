@@ -1,34 +1,24 @@
-import { useState, useEffect } from "react";
-import { useObtenerDatos } from "./ObtenerDatos";
-import { set } from "react-hook-form";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useObtenerDatos } from "@/components/Navbar/obtenerDatos";
 
 export const useActualizarCapitulos = (usuario) => {
   const { listas } = useObtenerDatos(usuario);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [nuevoCapitulo, setNuevoCapitulo] = useState(false);
-  const [nombresListas, setNombresListas] = useState([]);
-  const [urlsListas, setUrlsListas] = useState([]);
 
-  console.log("listas", listas);
-
-  useEffect(() => {
-    const nombresTemp = [];
-    const urlsTemp = [];
-
-    listas.forEach((lista) => {
-      nombresTemp.push(lista.nombreLista);
-      urlsTemp.push(lista.urls);
-    });
-
-    setNombresListas(nombresTemp);
-    setUrlsListas(urlsTemp);
+  const nombresListas = useMemo(() => {
+    return listas.map((lista) => lista.nombreLista);
   }, [listas]);
 
-  const actualizarCapitulos = () => {
+  const urlsListas = useMemo(() => {
+    return listas.map((lista) => lista.urls);
+  }, [listas]);
+
+  const actualizarCapitulos = useCallback(() => {
     setCargando(true);
     setMensaje("");
-    fetch(`/api/${usuario.uid}`, {
+    fetch(`/api/${usuario?.uid}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -52,13 +42,7 @@ export const useActualizarCapitulos = (usuario) => {
         console.error("Error:", error);
         setCargando(false);
       });
-  };
-
-  useEffect(() => {
-    if (usuario && usuario.uid) {
-      actualizarCapitulos();
-    }
-  }, [usuario]);
+  }, [usuario?.uid, nombresListas, urlsListas]);
 
   return { cargando, mensaje, nuevoCapitulo, actualizarCapitulos };
 };

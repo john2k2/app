@@ -1,8 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { getFirestore } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  getFirestore,
+} from "firebase/firestore";
+
 import MangaList from "./MangaList";
 import ListaSeleccionada from "./ListaSeleccionada";
 

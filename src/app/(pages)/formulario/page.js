@@ -18,9 +18,6 @@ const GuardarListaForm = () => {
   const [listaSeleccionada, setListaSeleccionada] = useState(null);
   const usuario = useAuth();
 
-  console.log("listas", listas);
-  console.log(urls);
-
   useEffect(() => {
     const getListas = async () => {
       try {
@@ -93,7 +90,7 @@ const GuardarListaForm = () => {
   };
 
   const agregarUrl = () => {
-    if (urls.length < 5) {
+    if (urls.length < 9999) {
       setUrls((prevUrls) => [...prevUrls, ""]);
     }
   };
