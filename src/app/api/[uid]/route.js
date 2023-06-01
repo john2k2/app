@@ -15,7 +15,7 @@ function limpiarTexto(texto) {
   return textoLimpio.trim();
 }
 
-async function obtenerCapitulos(url) {
+async function obtenerCapitulos(url, capitulosExistentes = []) {
   try {
     const response = await axios.get(url);
     if (response.status === 200) {
@@ -25,9 +25,14 @@ async function obtenerCapitulos(url) {
       chapters.each((index, element) => {
         const nombreCap = limpiarTexto($(element).find("h4").text());
         const link = new URL($(element).find("a").attr("href"), url).href;
-        capitulos.push({ capitulo: nombreCap, url: link, leido: false });
+
+        const capituloExistente = capitulosExistentes.find(
+          (cap) => cap.capitulo === nombreCap
+        );
+        const leido = capituloExistente ? capituloExistente.leido : false;
+
+        capitulos.push({ capitulo: nombreCap, url: link, leido: leido });
       });
-      console.log(`Capítulos obtenidos: ${capitulos}`);
       return capitulos;
     } else {
       console.error(`Error al realizar la solicitud HTTP a la URL: ${url}`);
@@ -40,19 +45,35 @@ async function obtenerCapitulos(url) {
   }
 }
 
+function addNewChapters(existingChapters, newChapters) {
+  newChapters.forEach((newChapter) => {
+    const existingChapterIndex = existingChapters.findIndex(
+      (chapter) => chapter.url === newChapter.url
+    );
+    if (existingChapterIndex === -1) {
+      // This is a new chapter, so add it to the list
+      existingChapters.unshift(newChapter);
+    }
+  });
+  // If there are more than 4 chapters, remove the last one
+  if (existingChapters.length > 4) {
+    existingChapters.pop();
+  }
+  return existingChapters;
+}
+
 async function obtenerAnimes(urls, uid) {
   const animes = {};
 
   for (const url of urls) {
     try {
-      console.log(`Obteniendo animes desde la URL: ${url}`);
       const mangaCollectionRef = collection(db, "mangas");
-      const docId = `${uid}-${limpiarTexto(url)}`; // Aquí asumimos que la URL es un identificador único para el anime
+      const docId = `${uid}-${limpiarTexto(url)}`;
       const docRef = doc(mangaCollectionRef, docId);
       const docSnap = await getDoc(docRef);
 
-      const chapters = await obtenerCapitulos(url);
-      if (chapters.length > 0) {
+      const newChapters = await obtenerCapitulos(url);
+      if (newChapters.length > 0) {
         const response = await axios.get(url);
         if (response.status === 200) {
           const $ = cheerio.load(response.data);
@@ -68,21 +89,27 @@ async function obtenerAnimes(urls, uid) {
 
           let anime;
           if (docSnap.exists()) {
+            const existingChapters = docSnap.exists()
+              ? docSnap.data().link
+              : [];
+            const updatedChapters = addNewChapters(
+              existingChapters,
+              newChapters
+            );
+
             anime = {
               nombre: nombre,
               imagenUrl: docSnap.data().imagenUrl,
-              link: chapters,
+              link: updatedChapters,
             };
           } else {
             anime = {
               nombre: nombre,
               imagenUrl: imagenUrl,
-              link: chapters,
+              link: newChapters,
             };
           }
-
           animes[nombre] = anime;
-          console.log(`Anime obtenido: ${anime}`);
         }
       }
     } catch (e) {
@@ -103,7 +130,6 @@ async function actualizarResultadosFirebase(mangas, listaNombre, uid) {
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        // Aquí, actualizamos solo los capítulos y el nombre del manga
         await updateDoc(docRef, {
           nombre: manga.nombre,
           link: manga.link,
@@ -129,7 +155,7 @@ async function main(uid, urlsListas, nombresListas) {
     const urls = urlsListas[i];
     const listaNombre = nombresListas[i];
 
-    const animes = await obtenerAnimes(urls);
+    const animes = await obtenerAnimes(urls, uid);
 
     await actualizarResultadosFirebase(animes, listaNombre, uid);
   }

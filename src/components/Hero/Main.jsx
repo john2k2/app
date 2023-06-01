@@ -16,6 +16,7 @@ const Main = () => {
   const [mangas, setMangas] = useState([]);
   const [listaSeleccionada, setListaSeleccionada] = useState("");
 
+
   useEffect(() => {
     const cargarMangas = async () => {
       try {
