@@ -2,7 +2,7 @@ import { signInWithGoogle, signOutUser, auth } from "./firebase";
 import { useState, useEffect } from "react";
 import { Link } from "@mui/material";
 
-const AuthGoogle = () => {
+const authGoogle = () => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -82,4 +82,4 @@ const AuthGoogle = () => {
   );
 };
 
-export default AuthGoogle;
+export default authGoogle;

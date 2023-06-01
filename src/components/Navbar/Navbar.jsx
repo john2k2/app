@@ -4,7 +4,7 @@ import React from "react";
 import { VscLoading } from "react-icons/vsc";
 import { useAuth } from "@/firebase/useAuth";
 import { useActualizarCapitulos } from "@/components/Navbar/NavbarButton";
-import AuthGoogle from "../.././firebase/AuthGoogle";
+import AuthGoogle from "@/firebase/authGoogle";
 import Link from "next/link";
 
 const Navbar = () => {
