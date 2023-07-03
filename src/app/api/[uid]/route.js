@@ -22,7 +22,7 @@ async function obtenerCapitulos(url, capitulosExistentes = []) {
       const $ = cheerio.load(response.data);
       const chapters = $("li.row").slice(0, 4);
       const capitulos = [];
-      chapters.each((index, element) => {
+      chapters.each((_, element) => {
         const nombreCap = limpiarTexto($(element).find("h4").text());
         const link = new URL($(element).find("a").attr("href"), url).href;
 
