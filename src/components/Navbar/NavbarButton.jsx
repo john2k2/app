@@ -1,48 +1,56 @@
 import { useState, useMemo, useCallback } from "react";
 import { useObtenerDatos } from "@/components/Navbar/obtenerDatos";
+import axios from "axios";
 
 export const useActualizarCapitulos = (usuario) => {
   const { listas } = useObtenerDatos(usuario);
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [nuevoCapitulo, setNuevoCapitulo] = useState(false);
+  const [error, setError] = useState(null);
 
-  const nombresListas = useMemo(() => {
-    return listas.map((lista) => lista.nombreLista);
-  }, [listas]);
+  const actualizarCapitulos = useCallback(async () => {
+    if (!usuario?.uid) {
+      setError("El usuario no está definido o no tiene una ID válida.");
+      return;
+    }
 
-  const urlsListas = useMemo(() => {
-    return listas.map((lista) => lista.urls);
-  }, [listas]);
-
-  const actualizarCapitulos = useCallback(() => {
     setCargando(true);
     setMensaje("");
-    fetch(`/api/${usuario?.uid}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ usuario, nombresListas, urlsListas }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Error en la llamada a la API");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setCargando(false);
-        setNuevoCapitulo(data.nuevoCapitulo);
-        if (data.nuevoCapitulo) {
-          setMensaje("¡Nuevo capítulo disponible!");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        setCargando(false);
-      });
-  }, [usuario?.uid, nombresListas, urlsListas]);
+    setError(null);
 
-  return { cargando, mensaje, nuevoCapitulo, actualizarCapitulos };
+    try {
+      const promesas = listas.map((lista) => {
+        const data = {
+          uid: usuario.uid,
+          urls: lista.urls,
+          listaNombre: lista.nombreLista,
+        };
+
+        return axios.post("http://127.0.0.1:5000/api/mangas", data);
+      });
+
+      const respuestas = await Promise.all(promesas);
+
+      let nuevasActualizaciones = false;
+      respuestas.forEach((response) => {
+        if (response.data.nuevoCapitulo) {
+          nuevasActualizaciones = true;
+        }
+      });
+
+      setCargando(false);
+      setNuevoCapitulo(nuevasActualizaciones);
+
+      if (nuevasActualizaciones) {
+        setMensaje("¡Nuevo capítulo disponible!");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setError(error.message);
+      setCargando(false);
+    }
+  }, [usuario, listas]);
+
+  return { cargando, mensaje, nuevoCapitulo, actualizarCapitulos, error };
 };

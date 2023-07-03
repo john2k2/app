@@ -2,15 +2,22 @@
 
 import React from "react";
 import { VscLoading } from "react-icons/vsc";
-import { useAuth } from "@/firebase/useAuth";
 import { useActualizarCapitulos } from "@/components/Navbar/NavbarButton";
 import AuthGoogle from "@/firebase/authGoogle";
 import Link from "next/link";
+import { useAuth } from "@/firebase/useAuth";
 
 const Navbar = () => {
   const usuario = useAuth();
-  const { cargando, mensaje, nuevoCapitulo, actualizarCapitulos } =
+
+  if (usuario === undefined) return null;
+
+  const { cargando, mensaje, nuevoCapitulo, actualizarCapitulos, error } =
     useActualizarCapitulos(usuario);
+
+  const handleClick = () => {
+    actualizarCapitulos();
+  };
 
   return (
     <>
@@ -32,10 +39,14 @@ const Navbar = () => {
           {usuario && (
             <button
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={actualizarCapitulos}
+              onClick={handleClick}
               disabled={cargando}
             >
-              {cargando ? <VscLoading /> : "Actualizar capítulos"}
+              {cargando ? (
+                <VscLoading className="animate-spin" />
+              ) : (
+                "Actualizar"
+              )}
             </button>
           )}
           {mensaje && <p>{mensaje}</p>}

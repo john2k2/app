@@ -5,7 +5,7 @@ import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
-  signOut,
+  signOut,                                                  
 } from "firebase/auth";
 import {
   getFirestore,
